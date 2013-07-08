@@ -8,26 +8,20 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.web.method.HandlerMethodSelector;
-
-import proto.action.ActionHandler;
-import proto.action.ActionHandlerRegistry;
-import proto.action.annotation.ActionClass;
 
 public abstract class AbstractHandlerMethodMapping<T> implements ApplicationContextAware, InitializingBean {
     private static final Logger LOG = Logger.getLogger(AbstractHandlerMethodMapping.class);
 
     private final Map<T, HandlerMethod> handlerMethods = new LinkedHashMap<T, HandlerMethod>();
     private ApplicationContext applicationContext;
+    private ConversionService conversionService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -37,6 +31,10 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
     }
 
     protected void initHandlerMethods() {
@@ -97,13 +95,6 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
         this.handlerMethods.put(mapping, handlerMethod);
         if (LOG.isInfoEnabled()) {
             LOG.info("Mapped \"" + mapping + "\" onto " + handlerMethod);
-        }
-
-        Set<String> patterns = getMappingPathPatterns(mapping);
-        for (String pattern : patterns) {
-            if (!getPathMatcher().isPattern(pattern)) {
-                this.urlMap.add(pattern, mapping);
-            }
         }
     }
 

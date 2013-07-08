@@ -10,17 +10,20 @@ import proto.action.annotation.ActionParameter;
 import proto.action.annotation.ValueConstants;
 
 
-class HandlerMethod {
+class HandlerMethod<T> {
     private Object bean;
     private Method method;
-    //private Method bridgedMethod;
     private MethodParameter<?>[] parameters;
-    private Converter<Object, ActionResult> resultConverter;
+    private final Converter<T, ActionResult> resultConverter;
+
+    public HandlerMethod(Converter<T, ActionResult> resultConverter) {
+        this.resultConverter = resultConverter;
+    }
 
     public ActionResult invoke(Action action) {
         try {
             Object[] params = createInvocationParameters(action);
-            Object methodResult = method.invoke(bean, params);
+            T methodResult = (T) method.invoke(bean, params);
             return resultConverter.convert(methodResult);
         } catch (Exception e) {
             ReflectionUtils.handleReflectionException(e);
