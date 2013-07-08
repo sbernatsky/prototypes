@@ -12,7 +12,7 @@ public @interface ActionParameter {
     /**
      * The name of the request parameter to bind to.
      */
-    String value() default "";
+    String value();
 
     /**
      * Whether the parameter is required.
@@ -28,5 +28,5 @@ public @interface ActionParameter {
      * The default value to use as a fallback. Supplying a default value implicitly
      * sets {@link #required()} to false.
      */
-    String defaultValue() default "\n\t\t\n\t\t\n\uE000\uE001\uE002\n\t\t\t\t\n";
+    String defaultValue() default ValueConstants.DEFAULT_NONE;
 }
