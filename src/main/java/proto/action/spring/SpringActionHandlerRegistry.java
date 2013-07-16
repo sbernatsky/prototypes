@@ -2,6 +2,7 @@ package proto.action.spring;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -21,6 +22,11 @@ public class SpringActionHandlerRegistry extends AbstractHandlerMethodMapping<Ac
     @Override
     public ActionHandler lookup(String name) {
         return actionHandlers.get(name);
+    }
+
+    @Override
+    public Set<String> getRegisteredNames() {
+        return new HashSet<String>(actionHandlers.keySet());
     }
 
     public void setActionHandlers(Map<String, ActionHandler> handlers) {
