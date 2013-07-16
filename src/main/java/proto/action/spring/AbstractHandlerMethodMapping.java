@@ -83,7 +83,7 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
      * under the same mapping
      */
     protected void registerHandlerMethod(Object handler, Method method, T mapping) {
-        HandlerMethod handlerMethod = new HandlerMethod(handler, method);
+        HandlerMethod handlerMethod = new HandlerMethod(handler, method, conversionService);
 
         HandlerMethod oldHandlerMethod = handlerMethods.get(mapping);
         if (oldHandlerMethod != null && !oldHandlerMethod.equals(handlerMethod)) {
