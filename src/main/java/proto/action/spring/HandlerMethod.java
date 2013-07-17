@@ -2,6 +2,8 @@ package proto.action.spring;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -16,13 +18,27 @@ class HandlerMethod {
     private static final TypeDescriptor returnTarget = TypeDescriptor.valueOf(ActionResult.class);
     private static final TypeDescriptor paramSource = TypeDescriptor.valueOf(String.class);
     private static final MethodParameter actionMethodParameter = new MethodParameter() {
-
-        @Override
-        public Action getValue(Action action) {
-            return action;
-        }
+        @Override public Action getValue(Action action) { return action; }
     };
+    private static final Map<Class<?>, Class<?>> primitives;
 
+    static {
+        primitives = new HashMap<Class<?>, Class<?>>();
+        primitives.put(boolean.class, Boolean.class);
+        primitives.put(byte.class, Byte.class);
+        primitives.put(short.class, Short.class);
+        primitives.put(char.class, Character.class);
+        primitives.put(int.class, Integer.class);
+        primitives.put(long.class, Long.class);
+        primitives.put(float.class, Float.class);
+        primitives.put(double.class, Double.class);
+        primitives.put(void.class, Void.class);
+    }
+
+    private static Class<?> convertToWrapper(Class<?> primitive) {
+        Class<?> result = primitives.get(primitive);
+        return result != null ? result : primitive;
+    }
 
     private final Object bean;
     private final Method method;
@@ -35,9 +51,10 @@ class HandlerMethod {
         this.method = method;
         this.conversionService = conversionService;
 
-        this.returnSource = TypeDescriptor.valueOf(method.getReturnType());
+        this.returnSource = TypeDescriptor.valueOf(convertToWrapper(method.getReturnType()));
         if (!conversionService.canConvert(returnSource, returnTarget)) {
-            throw new RuntimeException(String.format("can not convert result %s -> %s", returnSource.getType(), returnTarget.getType()));
+            throw new RuntimeException(String.format("can not convert result %s -> %s for method %s",
+                                       returnSource.getType(), returnTarget.getType(), method));
         }
 
         this.parameters = new MethodParameter[method.getParameterTypes().length];
@@ -49,7 +66,8 @@ class HandlerMethod {
             } else {
                 TypeDescriptor paramTarget = TypeDescriptor.valueOf(parameterType);
                 if (!conversionService.canConvert(paramSource, paramTarget)) {
-                    throw new RuntimeException(String.format("can not convert parameter %s -> %s", returnSource.getType(), returnTarget.getType()));
+                    throw new RuntimeException(String.format("can not convert parameter %s -> %s for method %s",
+                                               paramSource.getType(), paramTarget.getType(), method));
                 }
                 ActionParameter desc = null;
                 for (Annotation annotation : method.getParameterAnnotations()[i]) {
@@ -70,7 +88,8 @@ class HandlerMethod {
         try {
             Object[] params = createInvocationParameters(action);
             Object methodResult = method.invoke(bean, params);
-            return (ActionResult) conversionService.convert(methodResult, paramSource, returnTarget);
+            ActionResult result = (ActionResult) conversionService.convert(methodResult, returnSource, returnTarget);
+            return result != null ? result : ActionResult.SUCCESS;
         } catch (Exception e) {
             ReflectionUtils.handleReflectionException(e);
             return null;
@@ -110,7 +129,7 @@ class HandlerMethod {
                 throw new IllegalArgumentException("missing required parameter: "+ desc.value());
             }
 
-            if (value == null && desc.defaultValue() != ValueConstants.DEFAULT_NONE) {
+            if (value == null && !ValueConstants.DEFAULT_NONE.equals(desc.defaultValue())) {
                 value = desc.defaultValue();
             }
 

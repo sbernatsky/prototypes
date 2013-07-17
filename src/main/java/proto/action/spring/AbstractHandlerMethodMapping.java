@@ -58,7 +58,9 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
      * @param handler the bean name of a handler or a handler instance
      */
     protected void detectHandlerMethods(final Object handler) {
-        Class<?> handlerType = handler.getClass();
+        Class<?> handlerType = (handler instanceof String)
+                ? getApplicationContext().getType((String) handler)
+                : handler.getClass();
 
         final Class<?> userType = ClassUtils.getUserClass(handlerType);
 
@@ -83,7 +85,8 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
      * under the same mapping
      */
     protected void registerHandlerMethod(Object handler, Method method, T mapping) {
-        HandlerMethod handlerMethod = new HandlerMethod(handler, method, conversionService);
+        Object bean = (handler instanceof String) ? getApplicationContext().getBean((String) handler) : handler;
+        HandlerMethod handlerMethod = new HandlerMethod(bean, method, conversionService);
 
         HandlerMethod oldHandlerMethod = handlerMethods.get(mapping);
         if (oldHandlerMethod != null && !oldHandlerMethod.equals(handlerMethod)) {

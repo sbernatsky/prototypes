@@ -139,11 +139,6 @@
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>false</filtering>
-                <includes>
-                    <include>*.gif</include>
-                    <include>*.txt</include>
-                    <include>*.log</include>
-                </includes>
             </testResource>
         </testResources>
 
