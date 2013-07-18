@@ -2,8 +2,6 @@ package proto.action.spring;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -17,33 +15,20 @@ import proto.action.annotation.ValueConstants;
 class HandlerMethod {
     private static final TypeDescriptor returnTarget = TypeDescriptor.valueOf(ActionResult.class);
     private static final TypeDescriptor paramSource = TypeDescriptor.valueOf(String.class);
-    private static final MethodParameter actionMethodParameter = new MethodParameter() {
+    private static final MethodParameterConverter actionMethodParameter = new MethodParameterConverter() {
         @Override public Action getValue(Action action) { return action; }
     };
-    private static final Map<Class<?>, Class<?>> primitives;
-
-    static {
-        primitives = new HashMap<Class<?>, Class<?>>();
-        primitives.put(boolean.class, Boolean.class);
-        primitives.put(byte.class, Byte.class);
-        primitives.put(short.class, Short.class);
-        primitives.put(char.class, Character.class);
-        primitives.put(int.class, Integer.class);
-        primitives.put(long.class, Long.class);
-        primitives.put(float.class, Float.class);
-        primitives.put(double.class, Double.class);
-        primitives.put(void.class, Void.class);
-    }
-
-    private static Class<?> convertToWrapper(Class<?> primitive) {
-        Class<?> result = primitives.get(primitive);
-        return result != null ? result : primitive;
-    }
+    private static final ResultConverter<Void> VOID_RESULT_CONVERTER = new ResultConverter<Void>() {
+        @Override public ActionResult convert(Void result) { return ActionResult.SUCCESS; }
+    };
+    private static final ResultConverter<ActionResult> ACTION_RESULT_CONVERTER = new ResultConverter<ActionResult>() {
+        @Override public ActionResult convert(ActionResult result) { return result; }
+    };
 
     private final Object bean;
     private final Method method;
-    private final TypeDescriptor returnSource;
-    private final MethodParameter[] parameters;
+    private final ResultConverter<? extends Object> resultConverter;
+    private final MethodParameterConverter[] parameters;
     private final ConversionService conversionService;
 
     public HandlerMethod(Object handler, Method method, ConversionService conversionService) {
@@ -51,13 +36,22 @@ class HandlerMethod {
         this.method = method;
         this.conversionService = conversionService;
 
-        this.returnSource = TypeDescriptor.valueOf(convertToWrapper(method.getReturnType()));
-        if (!conversionService.canConvert(returnSource, returnTarget)) {
-            throw new RuntimeException(String.format("can not convert result %s -> %s for method %s",
-                                       returnSource.getType(), returnTarget.getType(), method));
+        Class<?> returnType = method.getReturnType();
+        if (Void.class.isAssignableFrom(returnType)
+                || Void.TYPE.isAssignableFrom(returnType)) {
+            this.resultConverter = VOID_RESULT_CONVERTER;
+        } else if (ActionResult.class.isAssignableFrom(returnType)) {
+            this.resultConverter = ACTION_RESULT_CONVERTER;
+        } else {
+            TypeDescriptor returnSource = TypeDescriptor.valueOf(method.getReturnType());
+            if (!conversionService.canConvert(returnSource, returnTarget)) {
+                throw new RuntimeException(String.format("can not convert result %s -> %s for method %s",
+                                           returnSource.getType(), returnTarget.getType(), method));
+            }
+            this.resultConverter = new ConvertibleResultConverter<Object>(returnSource);
         }
 
-        this.parameters = new MethodParameter[method.getParameterTypes().length];
+        this.parameters = new MethodParameterConverter[method.getParameterTypes().length];
         Class<?>[] parameterTypes = method.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> parameterType = parameterTypes[i];
@@ -88,15 +82,14 @@ class HandlerMethod {
         try {
             Object[] params = createInvocationParameters(action);
             Object methodResult = method.invoke(bean, params);
-            ActionResult result = (ActionResult) conversionService.convert(methodResult, returnSource, returnTarget);
-            return result != null ? result : ActionResult.SUCCESS;
+            return ((ResultConverter<Object>)resultConverter).convert(methodResult);
         } catch (Exception e) {
             ReflectionUtils.handleReflectionException(e);
             return null;
         }
     }
 
-    Object[] createInvocationParameters(Action action) {
+    private Object[] createInvocationParameters(Action action) {
         Object[] result = new Object[parameters.length];
         for (int i = 0; i < result.length; i++) {
             result[i] = parameters[i].getValue(action);
@@ -104,15 +97,15 @@ class HandlerMethod {
         return result;
     }
 
-    public Object getBean() {
+    Object getBean() {
         return bean;
     }
 
-    public static abstract interface MethodParameter {
+    public static interface MethodParameterConverter {
         Object getValue(Action action);
     }
 
-    public class ConvertibleMethodParameter implements MethodParameter {
+    public class ConvertibleMethodParameter implements MethodParameterConverter {
         private final TypeDescriptor targetType;
         private final ActionParameter desc;
 
@@ -134,6 +127,23 @@ class HandlerMethod {
             }
 
             return conversionService.convert(value, paramSource, targetType);
+        }
+    }
+
+    public static interface ResultConverter<T> {
+        ActionResult convert(T result);
+    }
+
+    public class ConvertibleResultConverter<T> implements ResultConverter<T> {
+        private final TypeDescriptor sourceType;
+
+        public ConvertibleResultConverter(TypeDescriptor sourceType) {
+            this.sourceType = sourceType;
+        }
+
+        @Override
+        public ActionResult convert(T result) {
+            return (ActionResult) conversionService.convert(result, sourceType, returnTarget);
         }
     }
 

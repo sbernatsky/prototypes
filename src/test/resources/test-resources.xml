@@ -21,7 +21,6 @@
             <set>
                 <bean class="proto.action.spring.converters.ActionResultToActionResultConverter" />
                 <bean class="proto.action.spring.converters.IntegerToActionResultConverter" />
-                <bean class="proto.action.spring.converters.VoidToActionResultConverter" />
             </set>
         </property>
     </bean>

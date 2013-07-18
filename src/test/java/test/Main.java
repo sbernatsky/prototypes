@@ -20,7 +20,7 @@ public class Main {
             private final Map<String, String> params = new HashMap<String, String>();
 
             {
-//                params.put("param-42", "42");
+                params.put("param-42", "42");
                 params.put("param-uuid", ParameterActionHandlers._UUID.toString());
             }
 
