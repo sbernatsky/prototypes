@@ -10,7 +10,6 @@ import java.util.Set;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
-import org.springframework.web.method.HandlerMethodSelector;
 import proto.action.ActionHandler;
 import proto.action.ActionHandlerRegistry;
 import proto.action.annotation.ActionMethod;
@@ -36,7 +35,7 @@ public class SpringActionHandlerRegistry extends AbstractHandlerMethodMapping<Ac
     protected boolean isHandler(Class<?> beanType) {
         final Class<?> userType = ClassUtils.getUserClass(beanType);
 
-        Set<Method> methods = HandlerMethodSelector.selectMethods(userType, new MethodFilter() {
+        Set<Method> methods = HandlerMethodUtils.selectMethods(userType, new MethodFilter() {
             public boolean matches(Method method) {
                 return getMappingForMethod(method, userType) != null;
             }

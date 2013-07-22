@@ -12,7 +12,7 @@ public @interface ActionParameter {
     /**
      * The name of the request parameter to bind to.
      */
-    String value();
+    String value() default ValueConstants.DEFAULT_NONE;
 
     /**
      * Whether the parameter is required.

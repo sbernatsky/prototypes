@@ -14,7 +14,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
-import org.springframework.web.method.HandlerMethodSelector;
 
 public abstract class AbstractHandlerMethodMapping<T> implements ApplicationContextAware, InitializingBean {
     private static final Logger LOG = Logger.getLogger(AbstractHandlerMethodMapping.class);
@@ -64,7 +63,7 @@ public abstract class AbstractHandlerMethodMapping<T> implements ApplicationCont
 
         final Class<?> userType = ClassUtils.getUserClass(handlerType);
 
-        Set<Method> methods = HandlerMethodSelector.selectMethods(userType, new MethodFilter() {
+        Set<Method> methods = HandlerMethodUtils.selectMethods(userType, new MethodFilter() {
             public boolean matches(Method method) {
                 return getMappingForMethod(method, userType) != null;
             }

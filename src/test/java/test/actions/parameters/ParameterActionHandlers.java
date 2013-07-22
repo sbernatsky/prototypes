@@ -25,9 +25,9 @@ public class ParameterActionHandlers {
     }
 
     @ActionMethod("uuid-parameters")
-    public void uuidParameter(Action action, @ActionParameter("param-uuid") UUID param) {
+    public void uuidParameter(Action action, @ActionParameter("param_uuid") UUID param) {
         Assert.notNull(action, "action");
-        Assert.isTrue(_UUID.equals(param), "param-uuid");
+        Assert.isTrue(_UUID.equals(param), "param_uuid");
     }
 
     @ActionMethod("optional-parameters")

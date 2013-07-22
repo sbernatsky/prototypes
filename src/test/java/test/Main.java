@@ -21,7 +21,7 @@ public class Main {
 
             {
                 params.put("param-42", "42");
-                params.put("param-uuid", ParameterActionHandlers._UUID.toString());
+                params.put("param_uuid", ParameterActionHandlers._UUID.toString());
             }
 
             @Override public String getName() { return null; }
