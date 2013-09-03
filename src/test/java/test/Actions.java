@@ -12,10 +12,10 @@ import proto.action.ActionHandler;
 import proto.action.ActionHandlerRegistry;
 import proto.action.ActionResult;
 
-public class Main {
+public class Actions {
 
     public static void main(String[] args) throws Exception {
-        AbstractApplicationContext context = new ClassPathXmlApplicationContext("test-resources.xml");
+        AbstractApplicationContext context = new ClassPathXmlApplicationContext("test-actions.xml");
         Action action = new Action() {
             private final Map<String, String> params = new HashMap<String, String>();
 

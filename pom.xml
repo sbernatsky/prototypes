@@ -83,6 +83,25 @@
                 <artifactId>spring-beans</artifactId>
                 <version>${spring.version}</version>
             </dependency>
+
+            <!-- hdr histogram -->
+            <dependency>
+                <groupId>org.hdrhistogram</groupId>
+                <artifactId>hdrhistogram</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.affinity</groupId>
+                <artifactId>affinity</artifactId>
+                <version>0.1.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.2.5</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -125,6 +144,21 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>hdrhistogram</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.affinity</groupId>
+            <artifactId>affinity</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
         </dependency>
     </dependencies>
 
